@@ -34,13 +34,17 @@ app.jinja_env.filters['zip'] = zip
 
 
 # DATABASEURI = mysql://username:password@server/db
-# DATABASEURI = "mysql+pymysql://21fa_yzhou193:E1hL7yOSEP@dbase.cs.jhu.edu/21fa_yzhou193_db"
-DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
+DATABASEURI = "mysql+pymysql://21fa_yzhou193:E1hL7yOSEP@dbase.cs.jhu.edu/21fa_yzhou193_db"
+# DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
 #
 # This line creates a database engine that knows how to connect to the URI above.
 #
 Base = automap_base()
 engine = create_engine(DATABASEURI)
+
+# you only need to define which column is the primary key. It can automap the rest of the columns.
+Table('Most_Medal',Base.metadata, Column('Event_name', VARCHAR, 
+primary_key=True), autoload=True, autoload_with=engine)
 
 # reflect the tables
 Base.prepare(engine, reflect=True)
@@ -171,6 +175,49 @@ def basic_info():
     )   
     return response
 
+@app.route('/male_female', methods = ['GET'])
+def male_female():
+    # number of male atlete
+    context = dict()
+    Athlete = Base.classes.Athlete
+    male_count = session.query(Athlete).filter(Athlete.Gender == 'Men').count()
+    context['male_count'] = male_count
+
+    # number of female atlete
+    Athlete = Base.classes.Athlete
+    female_count = session.query(Athlete).filter(Athlete.Gender == 'Women').count()
+    context['female_count'] = female_count
+
+    total = (context['female_count'] + context['male_count'])
+    male_ratio = context['male_count'] / total
+    female_ratio = context['female_count'] / total
+    context['male_ratio'] = '{:.2%}'.format(male_ratio)
+    context['female_ratio'] = '{:.2%}'.format(female_ratio)
+
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
+@app.route('/event_medal', methods = ['GET'])
+def event_medal():
+    #return {"event_name": "swimming", "country_name": "USA", "number of medal": 15}
+    context = dict()
+
+    # country won most golden medals for each event
+    Most_Medal = Base.classes.Most_Medal
+
+    query = session.query(Most_Medal).all()
+    i = 0
+    for row in query:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
 
 if __name__ == "__main__":
     import click
