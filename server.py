@@ -24,7 +24,7 @@ tmpl_dir = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.jinja_env.filters['zip'] = zip
-Base = automap_base()
+
 
 # class AthleteRegion(Base):
 #     __table__ = 'Athlete_Region'
@@ -39,6 +39,7 @@ DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
 #
 # This line creates a database engine that knows how to connect to the URI above.
 #
+Base = automap_base()
 engine = create_engine(DATABASEURI)
 
 # reflect the tables
@@ -140,7 +141,7 @@ def athlete():
 @app.route('/basic_info', methods = ['GET'])
 def basic_info():
     #number of olympics games
-    print(Base.classes.keys())
+    # print(Base.classes.keys())
     context = dict()
     Game = Base.classes.Game
     game_count = session.query(Game).count()
@@ -153,19 +154,12 @@ def basic_info():
 
     # number of countries participated in year 2012
     Athlete = Base.classes.Athlete
-    # print(Base.classes.keys())
-    # Game_Athlete = Base.classes.Game_Athlete
-    # Region = Base.classes.Region
-    
-    # Athlete_Region = Base.classes.Athlete_Region
-    # for row in session.query(Athlete_Region).all():
-        # print(row.__dict__)
+    Game_Athlete = Base.classes.Game_Athlete
+    Region = Base.classes.Region
+    Athlete_Region = Base.classes.athlete_region
 
-
-
-
-    # country_count = session.query(Athlete, Game_Athlete, Region, Athlete_Region).join(Game_Athlete).join(Region).join(Athlete_Region).filter(Game_Athlete.game_id == 2012).count()
-    # context['country_count'] = country_count
+    country_count = session.query(Athlete, Game_Athlete, Region, Athlete_Region).join(Game_Athlete).join(Athlete_Region).join(Region).filter(Game.Year == '2012').count()
+    context['country_count'] = country_count
 
     # number of athletes
     athlete_count = session.query(Athlete).count()
