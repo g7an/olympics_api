@@ -13,6 +13,7 @@ import os
 # accessible as a variable in index.html:
 from collections import defaultdict
 from sqlalchemy import *
+from sqlalchemy import event
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import Session
 from flask import Flask, request, render_template, g, redirect, Response
@@ -25,12 +26,16 @@ app = Flask(__name__, template_folder=tmpl_dir)
 app.jinja_env.filters['zip'] = zip
 Base = automap_base()
 
+# class AthleteRegion(Base):
+#     __table__ = 'Athlete_Region'
+#     athlete_id = Column(Integer, ForeignKey('Athlete.athlete_id'), primary_key=True)
+#     region_id = Column(Integer, ForeignKey('Region.region_id'), primary_key=True)
+
+
 
 # DATABASEURI = mysql://username:password@server/db
 # DATABASEURI = "mysql+pymysql://21fa_yzhou193:E1hL7yOSEP@dbase.cs.jhu.edu/21fa_yzhou193_db"
 DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
-
-
 #
 # This line creates a database engine that knows how to connect to the URI above.
 #
@@ -126,21 +131,50 @@ def athlete():
     # print(context)
     # athlete = session.query(Athlete).first()
     # context = object_as_dict(athlete)
-
-    # print(response)
-    # cursor = g.conn.execute("SELECT name FROM Athlete")
-    # names = []
-    # for result in cursor:
-    #     print(result)
-    #     # can also be accessed using result[0]
-    #     names.append(result['name'])
-    # cursor.close()
-
-    # context = dict(data=names)
     response = app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
     )
+    return response
+
+@app.route('/basic_info', methods = ['GET'])
+def basic_info():
+    #number of olympics games
+    print(Base.classes.keys())
+    context = dict()
+    Game = Base.classes.Game
+    game_count = session.query(Game).count()
+    context['game_count'] = game_count
+
+    # number of events
+    Event = Base.classes.Event
+    event_count = session.query(Event).count()
+    context['event_count'] = event_count
+
+    # number of countries participated in year 2012
+    Athlete = Base.classes.Athlete
+    # print(Base.classes.keys())
+    # Game_Athlete = Base.classes.Game_Athlete
+    # Region = Base.classes.Region
+    
+    # Athlete_Region = Base.classes.Athlete_Region
+    # for row in session.query(Athlete_Region).all():
+        # print(row.__dict__)
+
+
+
+
+    # country_count = session.query(Athlete, Game_Athlete, Region, Athlete_Region).join(Game_Athlete).join(Region).join(Athlete_Region).filter(Game_Athlete.game_id == 2012).count()
+    # context['country_count'] = country_count
+
+    # number of athletes
+    athlete_count = session.query(Athlete).count()
+    context['athlete_count'] = athlete_count
+
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
     return response
 
 
