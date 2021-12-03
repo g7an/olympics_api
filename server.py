@@ -46,6 +46,9 @@ engine = create_engine(DATABASEURI)
 Table('Most_Medal',Base.metadata, Column('Event_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
+Table('Gold_count',Base.metadata, Column('Name', VARCHAR, 
+primary_key=True), autoload=True, autoload_with=engine)
+
 # reflect the tables
 Base.prepare(engine, reflect=True)
 
@@ -214,6 +217,117 @@ def event_medal():
     for row in query:
         context[i] = object_as_dict(row)
         i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
+@app.route('/win_rate', methods = ['GET'])
+def win_rate():
+    #win rate of male athletes
+    context = dict()
+    Athlete = Base.classes.Athlete
+    competitor_event = Base.classes.competitor_event
+    Event = Base.classes.Event
+    Medal = Base.classes.Medal
+    All_male_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Men').count()
+    win_event_male = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Men',Medal.Type == 'Gold').count()
+    context['Male Win Rate'] = '{:.2%}'.format(win_event_male / All_male_event)
+    
+    #win rate of female athletes
+    All_female_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Women').count()
+    win_event_female = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Women',Medal.Type == 'Gold').count()
+    context['Female Win Rate'] = '{:.2%}'.format(win_event_female / All_female_event)
+
+
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
+@app.route('/USA_info', methods = ['GET'])
+def USA_info():
+    #win rate of USA athletes
+    context = dict()
+    Athlete = Base.classes.Athlete
+    competitor_event = Base.classes.competitor_event
+    Event = Base.classes.Event
+    Medal = Base.classes.Medal
+    Region = Base.classes.Region
+    Athlete_Region = Base.classes.athlete_region
+
+    #win rate of USA athletes
+    All_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == 'United States').count()
+    win_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == 'United States',Medal.Type == 'Gold').count()
+    context['US Athletes Win Rate'] = '{:.2%}'.format(win_event / All_event)
+
+    #win rate of USA female
+    All_female_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == 'United States').count()
+    win_event_female = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == 'United States',Medal.Type == 'Gold').count()
+    context['US Female Win Rate'] = '{:.2%}'.format(win_event_female / All_female_event)
+
+    #win rate of USA male
+    All_male_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == 'United States').count()
+    win_event_male = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == 'United States',Medal.Type == 'Gold').count()
+    context['US male Win Rate'] = '{:.2%}'.format(win_event_male / All_male_event)
+
+    #medal ratio
+    All_gold_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Gold',Region.Region_name == 'United States').count()
+    
+    All_silver_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Silver',Region.Region_name == 'United States').count()
+    
+    All_Bronze_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Bronze',Region.Region_name == 'United States').count()
+    Gold_ratio = All_gold_count / (All_gold_count + All_silver_count + All_Bronze_count)
+    Silver_ratio = All_silver_count / (All_gold_count + All_silver_count + All_Bronze_count)
+    Bronze_ratio = All_Bronze_count / (All_gold_count + All_silver_count + All_Bronze_count)
+
+    context['US Gold Medal Retio:'] = '{:.2%}'.format(Gold_ratio)
+    context['US Silver Medal Retio:'] = '{:.2%}'.format(Silver_ratio)
+    context['US Bronze Medal Retio:'] = '{:.2%}'.format(Bronze_ratio)
+
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
+@app.route('/medal_top', methods = ['GET'])
+def medal_top():
+    # top 10 gold medal winner
+    context = dict()
+    # Athlete = Base.classes.Athlete
+    # competitor_event = Base.classes.competitor_event
+    # Medal = Base.classes.Medal
+    # winner = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
+    #     .join(Medal,Medal.ID == competitor_event.medal_id).filter(Medal.Type == 'Gold').group_by(competitor_event.competitor_id).order_by(-func.count(competitor_event.medal_id)).all()
+    Gold_count = Base.classes.Gold_count
+    winner = session.query(Gold_count).all()
+    i = 0
+    for row in winner:
+        context[i] = object_as_dict(row)
+        i += 1
+        if i == 10:
+            break
     response = app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
