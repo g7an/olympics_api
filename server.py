@@ -48,6 +48,7 @@ primary_key=True), autoload=True, autoload_with=engine)
 
 Table('Gold_count',Base.metadata, Column('Name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
+Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
 
 # reflect the tables
 Base.prepare(engine, reflect=True)
@@ -161,12 +162,10 @@ def basic_info():
 
     # number of countries participated in year 2012
     Athlete = Base.classes.Athlete
-    Game_Athlete = Base.classes.Game_Athlete
-    Region = Base.classes.Region
-    Athlete_Region = Base.classes.athlete_region
+    CountryCount = Base.classes.CountryCount
 
-    country_count = session.query(Athlete, Game_Athlete, Region, Athlete_Region).join(Game_Athlete).join(Athlete_Region).join(Region).filter(Game.Year == '2012').count()
-    context['country_count'] = country_count
+    country_count = session.query(CountryCount).first()
+    context['country_count'] = object_as_dict(country_count).get('count') 
 
     # number of athletes
     athlete_count = session.query(Athlete).count()
@@ -175,7 +174,7 @@ def basic_info():
     response = app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
+    )
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
