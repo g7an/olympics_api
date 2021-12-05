@@ -19,13 +19,13 @@ from sqlalchemy.orm import Session
 from flask import Flask, request, render_template, g, redirect, Response
 from flask import json
 from sqlalchemy.ext.automap import automap_base
+from flask_cors import CORS
 
 tmpl_dir = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.jinja_env.filters['zip'] = zip
-
-
+CORS(app)
 # class AthleteRegion(Base):
 #     __table__ = 'Athlete_Region'
 #     athlete_id = Column(Integer, ForeignKey('Athlete.athlete_id'), primary_key=True)
@@ -48,6 +48,7 @@ primary_key=True), autoload=True, autoload_with=engine)
 
 Table('Gold_count',Base.metadata, Column('Name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
+Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
 
 Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
 
@@ -194,7 +195,8 @@ def basic_info():
     response = app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
+    )
+    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 @app.route('/male_female', methods = ['GET'])
