@@ -50,6 +50,26 @@ Table('Gold_count',Base.metadata, Column('Name', VARCHAR,
 primary_key=True), autoload=True, autoload_with=engine)
 Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
 
+Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
+
+Table('Q1_Country_Gold',Base.metadata, Column('Region_name', VARCHAR, 
+primary_key=True), autoload=True, autoload_with=engine)
+
+Table('Q2_US_Gold_Athlete',Base.metadata, Column('Year', VARCHAR, 
+primary_key=True), Column('Season', Integer, primary_key = True), autoload=True, autoload_with=engine)
+
+Table('Q3_US_Excel',Base.metadata, Column('Sport_name', VARCHAR, 
+primary_key=True), autoload=True, autoload_with=engine)
+
+Table('Q5_Event_Year',Base.metadata, Column('Year', VARCHAR, 
+primary_key=True), Column('Season', Integer, primary_key = True), autoload=True, autoload_with=engine)
+
+Table('Q6_City_Game',Base.metadata, Column('City_name', VARCHAR, 
+primary_key=True), autoload=True, autoload_with=engine)
+
+Table('Q7_Partici_City',Base.metadata, Column('Year', VARCHAR, 
+primary_key=True), Column('Season', Integer, primary_key = True), autoload=True, autoload_with=engine)
+
 # reflect the tables
 Base.prepare(engine, reflect=True)
 
@@ -160,6 +180,7 @@ def basic_info():
     event_count = session.query(Event).count()
     context['event_count'] = event_count
 
+
     # number of countries participated in year 2012
     Athlete = Base.classes.Athlete
     CountryCount = Base.classes.CountryCount
@@ -221,6 +242,8 @@ def event_medal():
         mimetype='application/json'
     )   
     return response
+
+#nlp api
 
 @app.route('/win_rate', methods = ['GET'])
 def win_rate():
@@ -332,6 +355,103 @@ def medal_top():
         mimetype='application/json'
     )   
     return response
+
+#Q1 Top 20 countries with the most gold medals in 120 years.
+@app.route('/Gold_country', methods = ['GET'])
+def Gold_country():
+    Country = Base.classes.Q1_Country_Gold
+    context = dict()
+    ret = session.query(Country).all()
+    i = 0
+    for row in ret:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
+#Q2 Total number of U.S. athletes who have won medals in previous Olympics.
+@app.route('/US_Gold', methods = ['GET'])
+def US_Gold():
+    Top20 = Base.classes.Q2_US_Gold_Athlete
+    context = dict()
+    ret = session.query(Top20).all()
+    i = 0
+    for row in ret:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
+#Q3 Top 10 sports U.S. athletes excel (sorted by gold medals)
+@app.route('/US_excel', methods = ['GET'])
+def US_excel():
+    US_Excel = Base.classes.Q3_US_Excel
+    context = dict()
+    ret = session.query(US_Excel).all()
+    i = 0
+    for row in ret:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response 
+
+#Q5 Number of Olympic projects(events) in 120 years.
+@app.route('/event_year', methods = ['GET'])
+def event_year():
+    event_stats = Base.classes.Q5_Event_Year
+    context = dict()
+    ret = session.query(event_stats).all()
+    i = 0
+    for row in ret:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response 
+
+#Q6 Find cities that have held Olympic Games (either summer or winter) for more than 1 time
+@app.route('/held_cities', methods = ['GET'])
+def held_cities():
+    city_stats = Base.classes.Q6_City_Game
+    context = dict()
+    ret = session.query(city_stats).all()
+    i = 0
+    for row in ret:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response 
+
+#Q7 Find the number of countries/regions that participated in Olympic Games over the past 120 years, list out the year and the count of countries.
+@app.route('/partici_cities', methods = ['GET'])
+def partici_cities():
+    city_stats = Base.classes.Q7_Partici_City
+    context = dict()
+    ret = session.query(city_stats).all()
+    i = 0
+    for row in ret:
+        context[i] = object_as_dict(row)
+        i += 1
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )   
+    return response
+
 
 if __name__ == "__main__":
     import click
