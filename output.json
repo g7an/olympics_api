@@ -1,0 +1,24 @@
+{
+	"select": {
+		"column": "None",
+		"type": "[]"
+	},
+	"from": {
+		"table": "region"
+	},
+	"join": {
+	},
+	"where": {
+		"condition": [
+			{ "column": "GDP",
+			  "type": "None",
+			  "operator": "=",
+			  "value": "'2000'"
+			}
+		]
+	},
+	"group_by": {
+	},
+	"select": {
+	},
+}

@@ -353,9 +353,12 @@ if __name__ == "__main__":
                 python3 server.py --help
 
         """
-
+        import os
         HOST, PORT = host, port
         print("running on %s:%d" % (HOST, PORT))
         app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
+        # TODO: change it into a api call and pass the result to db to get response
+        command = "python3 -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the region with GDP is 2000'"
+        os.system(command)
     run()
