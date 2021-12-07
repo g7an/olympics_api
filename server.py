@@ -48,9 +48,10 @@ primary_key=True), autoload=True, autoload_with=engine)
 
 Table('Gold_count',Base.metadata, Column('Name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
-Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
 
 Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
+
+
 
 Table('Q1_Country_Gold',Base.metadata, Column('Region_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
@@ -451,16 +452,44 @@ def partici_cities():
         mimetype='application/json'
     )   
     return response
+    
+@app.route('/nlp_test', methods = ['GET'])
+def nlp_test():
+    command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the Region with Code is AFG'"
+    os.system(command)
+    data = []
+    with open('output.txt', 'r',encoding='utf8') as f:
+        for i in f:
+            data.append([j for j in i.split()])
+    stmt = ''
+    for i in data:
+        if not i:
+            continue
+        else:
+            for c in i:
+                stmt+= c + ' '
+    cursor = session.execute(text(stmt))
+    context = dict()
+    rows = cursor.fetchall()  # 取所有数据
+    for row in rows:
+        context[row.ID] = row.Region_name
+
+    response = app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )
+    return response
 
 
 if __name__ == "__main__":
     import click
-
+    import sys
     @click.command()
     @click.option('--debug', is_flag=True)
     @click.option('--threaded', is_flag=True)
     @click.argument('HOST', default='0.0.0.0')
     @click.argument('PORT', default=8000, type=int)
+
     def run(debug, threaded, host, port):
         """
         This function handles command line parameters.
@@ -478,7 +507,5 @@ if __name__ == "__main__":
         print("running on %s:%d" % (HOST, PORT))
         app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
-        # TODO: change it into a api call and pass the result to db to get response
-        command = "python3 -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the region with GDP is 2000'"
-        os.system(command)
     run()
+
