@@ -452,7 +452,7 @@ def partici_cities():
         mimetype='application/json'
     )   
     return response
-    
+
 @app.route('/nlp_test', methods = ['GET'])
 def nlp_test():
     command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the Region with Code is AFG'"
@@ -468,12 +468,14 @@ def nlp_test():
         else:
             for c in i:
                 stmt+= c + ' '
-    cursor = session.execute(text(stmt))
+    cursor = engine.execute(text(stmt))
+    i = 0
     context = dict()
-    rows = cursor.fetchall()  # 取所有数据
-    for row in rows:
-        context[row.ID] = row.Region_name
-
+    for result in cursor:
+        cur = dict()
+        for k, v in result._mapping.items():
+            cur[k] = v
+        context[i] = cur
     response = app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
