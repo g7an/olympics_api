@@ -170,20 +170,20 @@ def athlete():
 @app.route('/basic_info', methods = ['GET'])
 def basic_info():
     #number of olympics games
-    # print(Base.classes.keys())
+    print(Base.classes.keys())
     context = dict()
-    Game = Base.classes.Game
+    Game = Base.classes.game
     game_count = session.query(Game).count()
     context['game_count'] = game_count
 
     # number of events
-    Event = Base.classes.Event
+    Event = Base.classes.event
     event_count = session.query(Event).count()
     context['event_count'] = event_count
 
 
     # number of countries participated in year 2012
-    Athlete = Base.classes.Athlete
+    Athlete = Base.classes.athlete
     CountryCount = Base.classes.CountryCount
 
     country_count = session.query(CountryCount).first()
@@ -204,12 +204,11 @@ def basic_info():
 def male_female():
     # number of male atlete
     context = dict()
-    Athlete = Base.classes.Athlete
+    Athlete = Base.classes.athlete
     male_count = session.query(Athlete).filter(Athlete.Gender == 'Men').count()
     context['male_count'] = male_count
 
     # number of female atlete
-    Athlete = Base.classes.Athlete
     female_count = session.query(Athlete).filter(Athlete.Gender == 'Women').count()
     context['female_count'] = female_count
 
@@ -250,10 +249,10 @@ def event_medal():
 def win_rate():
     #win rate of male athletes
     context = dict()
-    Athlete = Base.classes.Athlete
+    Athlete = Base.classes.athlete
     competitor_event = Base.classes.competitor_event
-    Event = Base.classes.Event
-    Medal = Base.classes.Medal
+    Event = Base.classes.event
+    Medal = Base.classes.medal
     All_male_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Men').count()
     win_event_male = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Men',Medal.Type == 'Gold').count()
     context['Male Win Rate'] = '{:.2%}'.format(win_event_male / All_male_event)
@@ -274,11 +273,11 @@ def win_rate():
 def USA_info():
     #win rate of USA athletes
     context = dict()
-    Athlete = Base.classes.Athlete
+    Athlete = Base.classes.athlete
     competitor_event = Base.classes.competitor_event
-    Event = Base.classes.Event
-    Medal = Base.classes.Medal
-    Region = Base.classes.Region
+    Event = Base.classes.event
+    Medal = Base.classes.medal
+    Region = Base.classes.region
     Athlete_Region = Base.classes.athlete_region
 
     #win rate of USA athletes
@@ -455,7 +454,7 @@ def partici_cities():
 
 @app.route('/nlp_test', methods = ['GET'])
 def nlp_test():
-    command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the Region with Code is AFG'"
+    command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the region with Code is AFG'"
     os.system(command)
     data = []
     with open('output.txt', 'r',encoding='utf8') as f:
