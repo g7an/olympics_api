@@ -1,4 +1,0 @@
-
-SELECT *
-FROM region
-WHERE region.Code = 'afg';

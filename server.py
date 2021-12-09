@@ -25,6 +25,8 @@ tmpl_dir = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.jinja_env.filters['zip'] = zip
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 CORS(app)
 # class AthleteRegion(Base):
 #     __table__ = 'Athlete_Region'
@@ -454,30 +456,42 @@ def partici_cities():
 
 @app.route('/nlp_test', methods = ['GET'])
 def nlp_test():
-    command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i 'what is the region with Code is AFG'"
+    user_input = request.args['user_input']
+    print(user_input)
+    
+    # pass the user input to the ln2sql model, and get the query if possible
+    command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i '"+ user_input +"'"
     os.system(command)
+    
+    # read the query from the output.txt file
     data = []
-    with open('output.txt', 'r',encoding='utf8') as f:
-        for i in f:
-            data.append([j for j in i.split()])
-    stmt = ''
-    for i in data:
-        if not i:
-            continue
-        else:
-            for c in i:
-                stmt+= c + ' '
-    cursor = engine.execute(text(stmt))
-    i = 0
     context = dict()
-    for result in cursor:
-        cur = dict()
-        for k, v in result._mapping.items():
-            cur[k] = v
-        context[i] = cur
+
+    if os.path.exists('output.txt'):
+        with open('output.txt', 'r',encoding='utf8') as f:
+            for i in f:
+                data.append([j for j in i.split()])
+        stmt = ''
+        for i in data:
+            if not i:
+                continue
+            else:
+                for c in i:
+                    stmt+= c + ' '
+        cursor = engine.execute(text(stmt))
+        i = 0
+        
+        for result in cursor:
+            cur = dict()
+            for k, v in result._mapping.items():
+                cur[k] = v
+            context[i] = cur
+        
+        os.system('rm output.txt')
+
     response = app.response_class(
-        response=json.dumps(context),
-        mimetype='application/json'
+            response=json.dumps(context),
+            mimetype='application/json'
     )
     return response
 

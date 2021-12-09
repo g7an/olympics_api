@@ -10,10 +10,10 @@
 	},
 	"where": {
 		"condition": [
-			{ "column": "Code",
+			{ "column": "GDP",
 			  "type": "None",
 			  "operator": "=",
-			  "value": "'afg'"
+			  "value": "'549'"
 			}
 		]
 	},
