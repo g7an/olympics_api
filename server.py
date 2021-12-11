@@ -454,7 +454,7 @@ def partici_cities():
     )   
     return response
 
-@app.route('/nlp_test', methods = ['GET'])
+@app.route('/nlp', methods = ['GET'])
 def nlp_test():
     user_input = request.args['user_input']
     print(user_input)
@@ -478,14 +478,19 @@ def nlp_test():
             else:
                 for c in i:
                     stmt+= c + ' '
-        cursor = engine.execute(text(stmt))
-        i = 0
-        
-        for result in cursor:
-            cur = dict()
-            for k, v in result._mapping.items():
-                cur[k] = v
-            context[i] = cur
+        if "OOV" not in stmt:
+            cursor = engine.execute(text(stmt))
+            
+            i=0
+            for result in cursor:
+                cur = dict()
+                for k, v in result._mapping.items():
+                    cur[k] = v
+                context[i] = cur
+
+        else:
+            context[0] = "Wrong input"
+
         
         os.system('rm output.txt')
 
