@@ -61,7 +61,7 @@ primary_key=True), autoload=True, autoload_with=engine)
 Table('Q2_US_Gold_Athlete',Base.metadata, Column('Year', VARCHAR, 
 primary_key=True), Column('Season', Integer, primary_key = True), autoload=True, autoload_with=engine)
 
-Table('Q3_US_Excel',Base.metadata, Column('Sport_name', VARCHAR, 
+Table('All_Excel',Base.metadata, Column('Region_name', VARCHAR, primary_key = True), Column('Sport_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
 Table('Q5_Event_Year',Base.metadata, Column('Year', VARCHAR, 
@@ -390,21 +390,26 @@ def US_Gold():
     )   
     return response
 
-#Q3 Top 10 sports U.S. athletes excel (sorted by gold medals)
-@app.route('/US_excel', methods = ['GET'])
-def US_excel():
-    US_Excel = Base.classes.Q3_US_Excel
-    context = dict()
-    ret = session.query(US_Excel).all()
+#Q3 Top 10 sports all countries athletes excel (sorted by gold medals)
+@app.route('/country_excel', methods = ['GET'])
+def country_excel():
+    all_excel = Base.classes.All_Excel
+    context = {}
+    ret = session.query(all_excel).all()
     i = 0
+    country_count = defaultdict(int)
     for row in ret:
-        context[i] = object_as_dict(row)
+        row = object_as_dict(row)
+        if country_count[str(row['Region_name'])] == 10:
+            continue
+        context[i] = row
         i += 1
-    response = app.response_class(
+        country_count[str(row['Region_name'])] += 1
+        
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response 
+    ) 
 
 #Q5 Number of Olympic projects(events) in 120 years.
 @app.route('/event_year', methods = ['GET'])
@@ -455,7 +460,7 @@ def partici_cities():
     return response
 
 @app.route('/nlp', methods = ['GET'])
-def nlp_test():
+def nlp_api():
     user_input = request.args['user_input']
     print(user_input)
     
