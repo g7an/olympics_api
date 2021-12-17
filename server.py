@@ -301,11 +301,11 @@ def compete_info():
 
     #win rate of athletes
     All_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
             .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == region_name).count()
 
     win_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
             .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == region_name,Medal.Type == 'Gold').count()
 
     if All_event == 0:
@@ -315,10 +315,10 @@ def compete_info():
 
     #win rate of female
     All_female_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
             .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == region_name).count()
     win_event_female = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
             .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == region_name,Medal.Type == 'Gold').count()
 
     if All_female_event == 0:
@@ -328,10 +328,10 @@ def compete_info():
 
     #win rate of male
     All_male_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
             .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == region_name).count()
     win_event_male = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
             .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == region_name,Medal.Type == 'Gold').count()
 
     if All_male_event == 0:
@@ -341,16 +341,16 @@ def compete_info():
 
     #medal ratio
     All_gold_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Gold',Region.Region_name == region).count()
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Gold',Region.Region_name == region_name).count()
 
     All_silver_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Silver',Region.Region_name == region).count()
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Silver',Region.Region_name == region_name).count()
 
     All_Bronze_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-        .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Bronze',Region.Region_name == region).count()
+        .join(Event, Event.ID == competitor_event.event_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Bronze',Region.Region_name == region_name).count()
 
 
     if All_gold_count + All_silver_count + All_Bronze_count != 0:
