@@ -64,7 +64,7 @@ primary_key=True), Column('Season', Integer, primary_key = True), autoload=True,
 Table('All_Excel',Base.metadata, Column('Region_name', VARCHAR, primary_key = True), Column('Sport_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
-Table('Event_Year',Base.metadata, Column('Year', VARCHAR, 
+Table('All_Event_Year',Base.metadata, Column('Year', VARCHAR, 
 primary_key=True), Column('Season', VARCHAR, primary_key = True), autoload=True, autoload_with=engine)
 
 Table('Q6_City_Game',Base.metadata, Column('City_name', VARCHAR, 
@@ -442,7 +442,7 @@ def country_excel():
 # bar chart
 @app.route('/event_year', methods = ['GET'])
 def event_year():
-    event_stats = Base.classes.Event_Year
+    event_stats = Base.classes.All_Event_Year
     context = dict()
     ret = session.query(event_stats).all()
     i = 0
