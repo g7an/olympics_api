@@ -169,6 +169,20 @@ def athlete():
     )
     return response
 
+@app.route('/region', methods=['GET'])
+def region():
+    Region = Base.classes.region
+    context = {
+        i: object_as_dict(row)
+        for i, row in enumerate(session.query(Region).all())
+    }
+
+    return app.response_class(
+        response=json.dumps(context),
+        mimetype='application/json'
+    )
+
+# DONE
 @app.route('/basic_info', methods = ['GET'])
 def basic_info():
     #number of olympics games
@@ -202,6 +216,7 @@ def basic_info():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
+# DONE
 @app.route('/male_female', methods = ['GET'])
 def male_female():
     # number of male atlete
@@ -226,6 +241,7 @@ def male_female():
     )   
     return response
 
+# DONE
 @app.route('/event_medal', methods = ['GET'])
 def event_medal():
     #return {"event_name": "swimming", "country_name": "USA", "number of medal": 15}
@@ -245,8 +261,7 @@ def event_medal():
     )   
     return response
 
-#nlp api
-
+# bar chart
 @app.route('/win_rate', methods = ['GET'])
 def win_rate():
     #win rate of male athletes
@@ -271,10 +286,12 @@ def win_rate():
     )   
     return response
 
-@app.route('/USA_info', methods = ['GET'])
-def USA_info():
-    #win rate of USA athletes
-    context = dict()
+@app.route('/compete_info', methods = ['GET'])
+def compete_info():
+    region_name = request.args['region']
+    print(region_name)
+    #win rate of athletes
+    context = {}
     Athlete = Base.classes.athlete
     competitor_event = Base.classes.competitor_event
     Event = Base.classes.event
@@ -282,68 +299,81 @@ def USA_info():
     Region = Base.classes.region
     Athlete_Region = Base.classes.athlete_region
 
-    #win rate of USA athletes
+    #win rate of athletes
     All_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == 'United States').count()
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == region_name).count()
+
     win_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == 'United States',Medal.Type == 'Gold').count()
-    context['US Athletes Win Rate'] = '{:.2%}'.format(win_event / All_event)
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Region.Region_name == region_name,Medal.Type == 'Gold').count()
 
-    #win rate of USA female
+    if All_event == 0:
+        context['win_rate'] = 'N/A'
+    else:
+        context['win_rate'] = '{:.2%}'.format(win_event / All_event)
+
+    #win rate of female
     All_female_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == 'United States').count()
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == region_name).count()
     win_event_female = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == 'United States',Medal.Type == 'Gold').count()
-    context['US Female Win Rate'] = '{:.2%}'.format(win_event_female / All_female_event)
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Women',Region.Region_name == region_name,Medal.Type == 'Gold').count()
 
-    #win rate of USA male
+    if All_female_event == 0:
+        context['female_rate'] = 'N/A'
+    else:
+        context['female_rate'] = '{:.2%}'.format(win_event_female / All_female_event)
+
+    #win rate of male
     All_male_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == 'United States').count()
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == region_name).count()
     win_event_male = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == 'United States',Medal.Type == 'Gold').count()
-    context['US male Win Rate'] = '{:.2%}'.format(win_event_male / All_male_event)
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Athlete.Gender == 'Men',Region.Region_name == region_name,Medal.Type == 'Gold').count()
+
+    if All_male_event == 0:
+        context['male_rate'] = 'N/A'
+    else:
+        context['male_rate'] = '{:.2%}'.format(win_event_male / All_male_event)
 
     #medal ratio
     All_gold_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Gold',Region.Region_name == 'United States').count()
-    
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Gold',Region.Region_name == region_name).count()
+
     All_silver_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Silver',Region.Region_name == 'United States').count()
-    
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Silver',Region.Region_name == region_name).count()
+
     All_Bronze_count = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
         .join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id)\
-            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Bronze',Region.Region_name == 'United States').count()
-    Gold_ratio = All_gold_count / (All_gold_count + All_silver_count + All_Bronze_count)
-    Silver_ratio = All_silver_count / (All_gold_count + All_silver_count + All_Bronze_count)
-    Bronze_ratio = All_Bronze_count / (All_gold_count + All_silver_count + All_Bronze_count)
+            .join(Athlete_Region, Athlete_Region.athlete_id == Athlete.ID).join(Region,Region.ID == Athlete_Region.region_id).filter(Medal.Type == 'Bronze',Region.Region_name == region_name).count()
 
-    context['US Gold Medal Retio:'] = '{:.2%}'.format(Gold_ratio)
-    context['US Silver Medal Retio:'] = '{:.2%}'.format(Silver_ratio)
-    context['US Bronze Medal Retio:'] = '{:.2%}'.format(Bronze_ratio)
 
-    response = app.response_class(
+    if All_gold_count + All_silver_count + All_Bronze_count != 0:
+        context['gold_rate'] = '{:.2%}'.format(All_gold_count / (All_gold_count + All_silver_count + All_Bronze_count))
+        context['silver_rate'] = '{:.2%}'.format(All_silver_count / (All_gold_count + All_silver_count + All_Bronze_count))
+        context['bronze_rate'] = '{:.2%}'.format(All_Bronze_count / (All_gold_count + All_silver_count + All_Bronze_count))
+    else:
+        context['gold_rate'] = 'N/A'
+        context['silver_rate'] = 'N/A'
+        context['bronze_rate'] = 'N/A'
+
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
+
+# LeaderBoard
+# DONE
 @app.route('/medal_top', methods = ['GET'])
 def medal_top():
     # top 10 gold medal winner
     context = dict()
-    # Athlete = Base.classes.Athlete
-    # competitor_event = Base.classes.competitor_event
-    # Medal = Base.classes.Medal
-    # winner = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID)\
-    #     .join(Medal,Medal.ID == competitor_event.medal_id).filter(Medal.Type == 'Gold').group_by(competitor_event.competitor_id).order_by(-func.count(competitor_event.medal_id)).all()
     Gold_count = Base.classes.Gold_count
     winner = session.query(Gold_count).all()
     i = 0
@@ -358,23 +388,20 @@ def medal_top():
     )   
     return response
 
-#Q1 Top 20 countries with the most gold medals in 120 years.
-@app.route('/Gold_country', methods = ['GET'])
+#Q1 Top 20 countries with the most gold medals in 120 years. 
+# Barchart DONE 
+@app.route('/gold_country', methods = ['GET'])
 def Gold_country():
     Country = Base.classes.Q1_Country_Gold
-    context = dict()
     ret = session.query(Country).all()
-    i = 0
-    for row in ret:
-        context[i] = object_as_dict(row)
-        i += 1
-    response = app.response_class(
+    context = {i: object_as_dict(row) for i, row in enumerate(ret)}
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
 #Q2 Total number of U.S. athletes who have won medals in previous Olympics.
+# line chart 
 @app.route('/US_Gold', methods = ['GET'])
 def US_Gold():
     Top20 = Base.classes.Q2_US_Gold_Athlete
@@ -411,7 +438,8 @@ def country_excel():
         mimetype='application/json'
     ) 
 
-#Q5 Number of Olympic projects(events) in 120 years.
+#Q5 Number of Olympic projects(events) in 120 years
+# bar chart
 @app.route('/event_year', methods = ['GET'])
 def event_year():
     event_stats = Base.classes.Q5_Event_Year
@@ -428,6 +456,7 @@ def event_year():
     return response 
 
 #Q6 Find cities that have held Olympic Games (either summer or winter) for more than 1 time
+# DONE
 @app.route('/held_cities', methods = ['GET'])
 def held_cities():
     city_stats = Base.classes.Q6_City_Game
@@ -444,6 +473,8 @@ def held_cities():
     return response 
 
 #Q7 Find the number of countries/regions that participated in Olympic Games over the past 120 years, list out the year and the count of countries.
+# bar chart
+# DONE
 @app.route('/partici_cities', methods = ['GET'])
 def partici_cities():
     city_stats = Base.classes.Q7_Partici_City
@@ -462,17 +493,16 @@ def partici_cities():
 @app.route('/nlp', methods = ['GET'])
 def nlp_api():
     user_input = request.args['user_input']
-    print(user_input)
-    
+
     # pass the user input to the ln2sql model, and get the query if possible
     command = "python -m ln2sql.ln2sql.main -d database_store/olympics.sql -l lang_store/english.csv -j output.json -i '"+ user_input +"'"
     os.system(command)
-    
-    # read the query from the output.txt file
-    data = []
-    context = dict()
+
+    context = {}
 
     if os.path.exists('output.txt'):
+        # read the query from the output.txt file
+        data = []
         with open('output.txt', 'r',encoding='utf8') as f:
             for i in f:
                 data.append([j for j in i.split()])
@@ -480,30 +510,26 @@ def nlp_api():
         for i in data:
             if not i:
                 continue
-            else:
-                for c in i:
-                    stmt+= c + ' '
+            for c in i:
+                stmt+= c + ' '
         if "OOV" not in stmt:
             cursor = engine.execute(text(stmt))
-            
+
             i=0
             for result in cursor:
-                cur = dict()
-                for k, v in result._mapping.items():
-                    cur[k] = v
+                cur = {k: v for k, v in result._mapping.items()}
                 context[i] = cur
 
         else:
             context[0] = "Wrong input"
 
-        
+
         os.system('rm output.txt')
 
-    response = app.response_class(
+    return app.response_class(
             response=json.dumps(context),
             mimetype='application/json'
     )
-    return response
 
 
 if __name__ == "__main__":
