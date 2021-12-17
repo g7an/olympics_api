@@ -64,7 +64,7 @@ primary_key=True), Column('Season', Integer, primary_key = True), autoload=True,
 Table('All_Excel',Base.metadata, Column('Region_name', VARCHAR, primary_key = True), Column('Sport_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
-Table('All_Event_Year',Base.metadata, Column('Year', VARCHAR, 
+Table('All_Event_Year',Base.metadata, Column('Year', Integer, 
 primary_key=True), Column('Season', VARCHAR, primary_key = True), autoload=True, autoload_with=engine)
 
 Table('Q6_City_Game',Base.metadata, Column('City_name', VARCHAR, 
@@ -466,6 +466,7 @@ def held_cities():
     for row in ret:
         context[i] = object_as_dict(row)
         i += 1
+    
     response = app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
