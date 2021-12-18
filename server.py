@@ -59,7 +59,7 @@ primary_key=True), Column('Season', Integer, primary_key = True), autoload=True,
 Table('All_Excel',Base.metadata, Column('Region_name', VARCHAR, primary_key = True), Column('Sport_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
-Table('All_Event_Year',Base.metadata, Column('Year', Integer, 
+Table('Q5_Event_Year',Base.metadata, Column('Year', VARCHAR, 
 primary_key=True), Column('Season', VARCHAR, primary_key = True), autoload=True, autoload_with=engine)
 
 Table('Q6_City_Game',Base.metadata, Column('City_name', VARCHAR, 
@@ -446,7 +446,7 @@ def event_year():
     This function responds to a request for /event_year
     with number of Olympic events in 120 years
     """
-    event_stats = Base.classes.All_Event_Year
+    event_stats = Base.classes.Q5_Event_Year
     ret = session.query(event_stats).all()
     context = {i: object_as_dict(row) for i, row in enumerate(ret)}
     return app.response_class(
