@@ -9,16 +9,26 @@
 	"join": {
 	},
 	"where": {
-		"condition": [
+		"conditions": [
+			{ "column": "Region_name",
+			  "type": "None",
+			  "operator": "!=",
+			  "value": "'china'"
+			},
+			{
+			  "operator": "AND"
+			},
 			{ "column": "Code",
 			  "type": "None",
-			  "operator": "=",
-			  "value": "'afg'"
+			  "operator": "LIKE",
+			  "value": "'%c%'"
 			}
 		]
 	},
 	"group_by": {
 	},
 	"select": {
+		"column": "region.GDP",
+		"order": "DESC"
 	},
 }

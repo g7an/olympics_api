@@ -12,7 +12,7 @@ from sqlalchemy import *
 from sqlalchemy import event
 from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import Session
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, g
 from flask import json
 from sqlalchemy.ext.automap import automap_base
 from flask_cors import CORS
@@ -517,11 +517,13 @@ def nlp_api():
 
             i=0
             for result in cursor:
+                print(result)
                 cur = {k: v for k, v in result._mapping.items()}
                 context[i] = cur
-
+                i += 1
         else:
             context[0] = "Wrong input"
+        print(context)
 
 
         os.system('rm output.txt')
