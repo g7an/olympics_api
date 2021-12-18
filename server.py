@@ -1,16 +1,12 @@
 
 """
-Columbia's COMS W4111.001 Introduction to Databases
-Example Webserver
 To run locally:
         python3 server.py
 Go to http://localhost:8000 in your browser.
-A debugger such as "pdb" may be helpful for debugging.
-Read about it online.
 """
 
 import os
-# accessible as a variable in index.html:
+# accessible as a variable in index.html
 from collections import defaultdict
 from sqlalchemy import *
 from sqlalchemy import event
@@ -25,19 +21,18 @@ tmpl_dir = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.jinja_env.filters['zip'] = zip
+
+# add cross origin support
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 CORS(app)
-# class AthleteRegion(Base):
-#     __table__ = 'Athlete_Region'
-#     athlete_id = Column(Integer, ForeignKey('Athlete.athlete_id'), primary_key=True)
-#     region_id = Column(Integer, ForeignKey('Region.region_id'), primary_key=True)
 
 
 
 # DATABASEURI = mysql://username:password@server/db
 DATABASEURI = "mysql+pymysql://21fa_yzhou193:E1hL7yOSEP@dbase.cs.jhu.edu/21fa_yzhou193_db"
 # DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
+
 #
 # This line creates a database engine that knows how to connect to the URI above.
 #
@@ -45,10 +40,10 @@ Base = automap_base()
 engine = create_engine(DATABASEURI)
 
 # you only need to define which column is the primary key. It can automap the rest of the columns.
-Table('Most_Medal',Base.metadata, Column('Event_name', VARCHAR, 
+Table('Most_Medal', Base.metadata, Column('Event_name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
-Table('Gold_count',Base.metadata, Column('Name', VARCHAR, 
+Table('Gold_count', Base.metadata, Column('Name', VARCHAR, 
 primary_key=True), autoload=True, autoload_with=engine)
 
 Table('CountryCount', Base.metadata, Column('count', VARCHAR, primary_key=True), autoload=True, autoload_with=engine)
@@ -77,17 +72,13 @@ primary_key=True), Column('Season', VARCHAR, primary_key = True), autoload=True,
 Base.prepare(engine, reflect=True)
 
 session = Session(engine)
-#
-# Example of running queries in your database
-# Note that this will probably not work if you already have a table named 'test' in your database, containing meaningful data. This is only an example showing you how to run queries in your database using SQLAlchemy.
-#
 
 
 @app.before_request
 def before_request():
     """
     This function is run at the beginning of every web request 
-    (every time you enter an address in the web browser).
+    (every time entering an address in the web browser).
     We use it to setup a database connection that can be used throughout the request.
 
     The variable g is globally accessible.
@@ -105,7 +96,7 @@ def before_request():
 def teardown_request(exception):
     """
     At the end of the web request, this makes sure to close the database connection.
-    If you don't, the database could run out of memory!
+    Otherwise, the database could run out of memory
     """
     try:
         g.conn.close()
@@ -144,33 +135,18 @@ def teardown_request(exception):
 def index():
     return 'Hello World'
 
+# helper function to convert sqlalchemy object into a dictionary
 def object_as_dict(obj):
     return {c.key: getattr(obj, c.key)
             for c in inspect(obj).mapper.column_attrs}
 
 
-@app.route('/athlete', methods=['GET'])
-def athlete():
-    context = dict()
-    Athlete = Base.classes.Athlete
-    i = 0
-    for row in session.query(Athlete).all():
-        # print(context)
-        # context.update(object_as_dict(row)) 
-        context[i] = object_as_dict(row)
-        i += 1
-    
-    # print(context)
-    # athlete = session.query(Athlete).first()
-    # context = object_as_dict(athlete)
-    response = app.response_class(
-        response=json.dumps(context),
-        mimetype='application/json'
-    )
-    return response
-
 @app.route('/region', methods=['GET'])
 def region():
+    """
+    This function responds to a request for /region, 
+    with all the region info in the database
+    """
     Region = Base.classes.region
     context = {
         i: object_as_dict(row)
@@ -182,12 +158,19 @@ def region():
         mimetype='application/json'
     )
 
-# DONE
 @app.route('/basic_info', methods = ['GET'])
 def basic_info():
+    """
+    This function responds to a request for /basic_info, with data including:
+    1. The number of athletes in total
+    2. The number of regions attended the olympic game (in 2012)
+    3. The number of events in total (up to 2014)
+    4. The number of games held (up to 2014)
+    """
+
     #number of olympics games
     print(Base.classes.keys())
-    context = dict()
+    context = {}
     Game = Base.classes.game
     game_count = session.query(Game).count()
     context['game_count'] = game_count
@@ -216,11 +199,15 @@ def basic_info():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
-# DONE
 @app.route('/male_female', methods = ['GET'])
 def male_female():
+    """
+    This function responds to a request for /male_female,
+    with data including the number of male and female athlete,
+    and the percentage of male and female athlete
+    """
     # number of male atlete
-    context = dict()
+    context = {}
     Athlete = Base.classes.athlete
     male_count = session.query(Athlete).filter(Athlete.Gender == 'Men').count()
     context['male_count'] = male_count
@@ -235,37 +222,41 @@ def male_female():
     context['male_ratio'] = '{:.2%}'.format(male_ratio)
     context['female_ratio'] = '{:.2%}'.format(female_ratio)
 
-    response = app.response_class(
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
-# DONE
 @app.route('/event_medal', methods = ['GET'])
 def event_medal():
-    #return {"event_name": "swimming", "country_name": "USA", "number of medal": 15}
-    context = dict()
-
+    """
+    This function responds to a request for /event_medal,
+    with data including the event name, 
+    the country/region that earned the most medal,
+    and the number of medals they earned
+    """
     # country won most golden medals for each event
     Most_Medal = Base.classes.Most_Medal
 
     query = session.query(Most_Medal).all()
-    i = 0
-    for row in query:
-        context[i] = object_as_dict(row)
-        i += 1
-    response = app.response_class(
+    context = {i: object_as_dict(row) for i, row in enumerate(query)}
+
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
-# bar chart
+
 @app.route('/win_rate', methods = ['GET'])
 def win_rate():
+    """
+    This function responds to a request for /win_rate,
+    with data including the chance (in percentage) that a male athlete wins a game,
+    and the chance (in percentage) that a female athlete wins a game
+    """
+
     #win rate of male athletes
-    context = dict()
+    context = {}
     Athlete = Base.classes.athlete
     competitor_event = Base.classes.competitor_event
     Event = Base.classes.event
@@ -273,21 +264,26 @@ def win_rate():
     All_male_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Men').count()
     win_event_male = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Men',Medal.Type == 'Gold').count()
     context['Male Win Rate'] = '{:.2%}'.format(win_event_male / All_male_event)
-    
+
     #win rate of female athletes
     All_female_event = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Women').count()
     win_event_female = session.query(Athlete).join(competitor_event,competitor_event.competitor_id == Athlete.ID).join(Event, Event.ID == competitor_event.competitor_id ).join(Medal,Medal.ID == competitor_event.medal_id).filter(Athlete.Gender == 'Women',Medal.Type == 'Gold').count()
     context['Female Win Rate'] = '{:.2%}'.format(win_event_female / All_female_event)
 
 
-    response = app.response_class(
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
 @app.route('/compete_info', methods = ['GET'])
 def compete_info():
+    """""
+    This function responds to a request for /compete_info,
+    with data including the chance (in percentage) that an athlete from a country (query parameter) wins a game,
+    the chance (in percentage) that a male/female athlete from a country (query parameter) wins a game,
+    the chance (in percentage) that an athlete wins a gold/silver/bronze medal
+    """
     region_name = request.args['region']
     print(region_name)
     #win rate of athletes
@@ -368,12 +364,13 @@ def compete_info():
     )
 
 
-# LeaderBoard
-# DONE
 @app.route('/medal_top', methods = ['GET'])
 def medal_top():
-    # top 10 gold medal winner
-    context = dict()
+    """
+    This function responds to a request for /medal_top
+    with the name of top 10 gold medal winner and the number of medals they win
+    """
+    context = {}
     Gold_count = Base.classes.Gold_count
     winner = session.query(Gold_count).all()
     i = 0
@@ -382,16 +379,18 @@ def medal_top():
         i += 1
         if i == 10:
             break
-    response = app.response_class(
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
-#Q1 Top 20 countries with the most gold medals in 120 years. 
-# Barchart DONE 
+
 @app.route('/gold_country', methods = ['GET'])
 def Gold_country():
+    """
+    This function responds to a request for /gold_country
+    with top 20 countries with the most gold medals in 120 years. 
+    """
     Country = Base.classes.Q1_Country_Gold
     ret = session.query(Country).all()
     context = {i: object_as_dict(row) for i, row in enumerate(ret)}
@@ -400,26 +399,28 @@ def Gold_country():
         mimetype='application/json'
     )
 
-#Q2 Total number of U.S. athletes who have won medals in previous Olympics.
-# line chart 
 @app.route('/US_Gold', methods = ['GET'])
 def US_Gold():
+    """
+    This function responds to a request for /US_Gold
+    with total number of U.S. athletes who have won medals in previous Olympics.
+    """
+
     Top20 = Base.classes.Q2_US_Gold_Athlete
-    context = dict()
     ret = session.query(Top20).all()
-    i = 0
-    for row in ret:
-        context[i] = object_as_dict(row)
-        i += 1
-    response = app.response_class(
+    context = {i: object_as_dict(row) for i, row in enumerate(ret)}
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
 #Q3 Top 10 sports all countries athletes excel (sorted by gold medals)
 @app.route('/country_excel', methods = ['GET'])
 def country_excel():
+    """
+    This function responds to a request for /country_excel
+    with top 10 sports all countries athletes excel (sorted by gold medals)
+    """
     all_excel = Base.classes.All_Excel
     context = {}
     ret = session.query(all_excel).all()
@@ -438,61 +439,59 @@ def country_excel():
         mimetype='application/json'
     ) 
 
-#Q5 Number of Olympic projects(events) in 120 years
-# bar chart
+
 @app.route('/event_year', methods = ['GET'])
 def event_year():
+    """
+    This function responds to a request for /event_year
+    with number of Olympic events in 120 years
+    """
     event_stats = Base.classes.All_Event_Year
-    context = dict()
     ret = session.query(event_stats).all()
-    i = 0
-    for row in ret:
-        context[i] = object_as_dict(row)
-        i += 1
-    response = app.response_class(
+    context = {i: object_as_dict(row) for i, row in enumerate(ret)}
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response 
+    ) 
 
-#Q6 Find cities that have held Olympic Games (either summer or winter) for more than 1 time
-# DONE
+
 @app.route('/held_cities', methods = ['GET'])
 def held_cities():
+    """
+    This function responds to a request for /held_cities
+    with cities that have held Olympic Games (either summer or winter) for more than 1 time
+    """
     city_stats = Base.classes.Q6_City_Game
-    context = dict()
     ret = session.query(city_stats).all()
-    i = 0
-    for row in ret:
-        context[i] = object_as_dict(row)
-        i += 1
-    
-    response = app.response_class(
+    context = {i: object_as_dict(row) for i, row in enumerate(ret)}
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response 
+    ) 
 
-#Q7 Find the number of countries/regions that participated in Olympic Games over the past 120 years, list out the year and the count of countries.
-# bar chart
-# DONE
 @app.route('/partici_cities', methods = ['GET'])
 def partici_cities():
+    """
+    This function responds to a request for /partici_cities
+    with number of countries/regions that participated in Olympic Games over the past 120 years,
+    listing out the year and the count of countries.
+    """
     city_stats = Base.classes.Q7_Partici_City
-    context = dict()
     ret = session.query(city_stats).all()
-    i = 0
-    for row in ret:
-        context[i] = object_as_dict(row)
-        i += 1
-    response = app.response_class(
+    context = {i: object_as_dict(row) for i, row in enumerate(ret)}
+    return app.response_class(
         response=json.dumps(context),
         mimetype='application/json'
-    )   
-    return response
+    )
 
 @app.route('/nlp', methods = ['GET'])
 def nlp_api():
+    """
+    This function responds to a request for /nlp.
+    It passes the user input to ln2sql, and passes the sql query generates by ln2sql to the database.
+    It returns the result of the query.
+    """
+
     user_input = request.args['user_input']
 
     # pass the user input to the ln2sql model, and get the query if possible
