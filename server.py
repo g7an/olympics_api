@@ -1,7 +1,7 @@
 
 """
 To run locally:
-        python3 server.py
+        python server.py
 Go to http://localhost:8000 in your browser.
 """
 
@@ -169,7 +169,7 @@ def basic_info():
     """
 
     #number of olympics games
-    print(Base.classes.keys())
+    # print(Base.classes.keys())
     context = {}
     Game = Base.classes.game
     game_count = session.query(Game).count()
@@ -285,7 +285,6 @@ def compete_info():
     the chance (in percentage) that an athlete wins a gold/silver/bronze medal
     """
     region_name = request.args['region']
-    print(region_name)
     #win rate of athletes
     context = {}
     Athlete = Base.classes.athlete
@@ -517,13 +516,11 @@ def nlp_api():
 
             i=0
             for result in cursor:
-                print(result)
                 cur = {k: v for k, v in result._mapping.items()}
                 context[i] = cur
                 i += 1
         else:
             context[0] = "Wrong input"
-        print(context)
 
 
         os.system('rm output.txt')
