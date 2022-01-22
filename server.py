@@ -30,8 +30,7 @@ CORS(app)
 
 
 # DATABASEURI = mysql://username:password@server/db
-DATABASEURI = "mysql+pymysql://21fa_yzhou193:E1hL7yOSEP@dbase.cs.jhu.edu/21fa_yzhou193_db"
-# DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
+DATABASEURI = os.environ.get('DB_CONNECTION_STRING')
 
 #
 # This line creates a database engine that knows how to connect to the URI above.
